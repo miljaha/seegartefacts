@@ -39,15 +39,28 @@ else
 end
 pos = find(getLabels(order)==0,1); if isempty(pos), pos = 1; end
 
-fig = uifigure('Name','Signal labeling','Position',[100 100 1100 600]);
-g = uigridlayout(fig,[1 2]); g.ColumnWidth = {'1x',230};
+cmPerSec  = 3;
+segSec    = size(signal_samples,2)/fs;                 % exactly 3 s
+pxPerCm   = get(groot,'ScreenPixelsPerInch') / 2.54;
+axW       = round(cmPerSec * segSec * pxPerCm);        % 9 cm in pixels
 
-pl = uigridlayout(g,[2 1]);
-ax1 = uiaxes(pl); title(ax1,'Raw signal');                 ylabel(ax1,'Amplitude');
-ax2 = uiaxes(pl); title(ax2,'250-500 Hz filtered signal'); ylabel(ax2,'Amplitude');
+leftM = 70; rightM = 20; ctrlW = 230;
+panelW = axW + leftM + rightM;
+figW   = panelW + ctrlW + 30;                          % 30 = grid padding + spacing
+
+fig = uifigure('Name','Signal labeling','Position',[100 100 figW 600],'Resize','off');
+g = uigridlayout(fig,[1 2]); g.ColumnWidth = {panelW, ctrlW};
+
+pp = uipanel(g,'BorderType','none');
+ax1 = uiaxes(pp); ax2 = uiaxes(pp);
+ax1.Units = 'pixels'; ax2.Units = 'pixels';
+ax2.InnerPosition = [leftM  60  axW 220];              % x, y, width, height
+ax1.InnerPosition = [leftM 340  axW 200];
+title(ax1,'Raw signal');                 ylabel(ax1,'Amplitude');
+title(ax2,'250-500 Hz filtered signal'); ylabel(ax2,'Amplitude');
 xlabel(ax2,'Time (s)');
 h1 = plot(ax1,t,nan(size(t))); h2 = plot(ax2,t,nan(size(t)));
-linkaxes([ax1 ax2],'x'); xlim(ax1,[t(1) t(end)]);
+linkaxes([ax1 ax2],'x'); xlim(ax1,[0 segSec]);
 
 cp = uigridlayout(g,[8 1]);
 cp.RowHeight = [{'1x'}, repmat({40},1,7)];
