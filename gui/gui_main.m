@@ -14,7 +14,7 @@ for i = 1
 
     % if signal is not 9cm, measure the screen and put the result to the
     % last (6th) argument and use the call below
-    labelSignals(datapath, [], 2048, true, true, 6.75) % 6.9cm on my laptop
+    labelSignals(datapath, [], 2048, true, true, 6.75) % 6.75cm on my laptop
 
     % show labels
     fprintf("Labels saved:\n\n")
