@@ -1,12 +1,10 @@
-function labelSignals(src, savefile, fs, showMeta, randomize)
-% src: path to a .mat file containing the struct gui_data, or the struct itself
-%   gui_data.signal_samples : 2 x T x n  (1 = raw, 2 = HFB)
-%   gui_data.info           : n x 5 cell [score, channel, name, bad, patient]
-%                             columns 6 (label) and 7 (time) are added if missing
-% savefile: required if src is a struct; ignored if src is a path
+function labelSignals(src, savefile, fs, showMeta, randomize, sizeOnScreen)
+% sizeOnScreen: measured width (cm) of the 3 s segment on your screen when
+%   drawn at nominal 9 cm. Leave empty/omit for the normal, resizable layout.
 if nargin < 3, fs = 2048; end
 if nargin < 4, showMeta = true; end
-if nargin < 5, randomize = true; end
+if nargin < 5, randomize = false; end
+if nargin < 6, sizeOnScreen = []; end
 
 if ischar(src) || isstring(src)
     savefile = char(src);
@@ -39,14 +37,18 @@ else
 end
 pos = find(getLabels(order)==0,1); if isempty(pos), pos = 1; end
 
-cmPerSec  = 3;
-segSec    = size(signal_samples,2)/fs;                 % exactly 3 s
-pxPerCm   = get(groot,'ScreenPixelsPerInch') / 2.54;
-axW       = round(cmPerSec * segSec * pxPerCm);        % 9 cm in pixels
+segSec   = size(signal_samples,2)/fs;
+cmPerSec = 3;
+
+pxPerCm = get(groot,'ScreenPixelsPerInch') / 2.54;
+if ~isempty(sizeOnScreen)
+    pxPerCm = pxPerCm * (9/sizeOnScreen);      % correction from measurement
+end
+axW = round(cmPerSec * segSec * pxPerCm);
 
 leftM = 70; rightM = 20; ctrlW = 230;
 panelW = axW + leftM + rightM;
-figW   = panelW + ctrlW + 30;                          % 30 = grid padding + spacing
+figW   = panelW + ctrlW + 30;
 
 fig = uifigure('Name','Signal labeling','Position',[100 100 figW 600],'Resize','off');
 g = uigridlayout(fig,[1 2]); g.ColumnWidth = {panelW, ctrlW};
@@ -54,8 +56,9 @@ g = uigridlayout(fig,[1 2]); g.ColumnWidth = {panelW, ctrlW};
 pp = uipanel(g,'BorderType','none');
 ax1 = uiaxes(pp); ax2 = uiaxes(pp);
 ax1.Units = 'pixels'; ax2.Units = 'pixels';
-ax2.InnerPosition = [leftM  60  axW 220];              % x, y, width, height
+ax2.InnerPosition = [leftM  60  axW 220];
 ax1.InnerPosition = [leftM 340  axW 200];
+
 title(ax1,'Raw signal');                 ylabel(ax1,'Amplitude');
 title(ax2,'250-500 Hz filtered signal'); ylabel(ax2,'Amplitude');
 xlabel(ax2,'Time (s)');
